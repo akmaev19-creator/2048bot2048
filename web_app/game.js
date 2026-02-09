@@ -36,7 +36,72 @@ function initGame() {
     
     // Добавляем обработчик клавиш (стрелки)
     document.addEventListener('keydown', handleKeyPress);
-    
+    // ========== ДОБАВЛЯЕМ УПРАВЛЕНИЕ СВАЙПАМИ ==========
+
+let touchStartX = 0;
+let touchStartY = 0;
+const minSwipeDistance = 30; // Минимальное расстояние для распознавания свайпа
+
+// Обработка начала касания
+gameBoard.addEventListener('touchstart', function(event) {
+    // Отключаем стандартное поведение (например, прокрутку страницы)
+    event.preventDefault();
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+}, { passive: false }); // Важно для preventDefault()
+
+// Обработка движения пальца и окончания свайпа
+gameBoard.addEventListener('touchend', function(event) {
+    event.preventDefault();
+    if (!touchStartX || !touchStartY) return;
+
+    const touch = event.changedTouches[0];
+    const touchEndX = touch.clientX;
+    const touchEndY = touch.clientY;
+
+    // Вычисляем разницу
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    // Сбрасываем координаты начала
+    touchStartX = 0;
+    touchStartY = 0;
+
+    // Определяем направление (какая ось изменена больше?)
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        // Горизонтальный свайп
+        if (Math.abs(diffX) < minSwipeDistance) return; // Слишком короткий
+        if (diffX > 0) {
+            // Свайп вправо
+            makeMove('right');
+        } else {
+            // Свайп влево
+            makeMove('left');
+        }
+    } else {
+        // Вертикальный свайп
+        if (Math.abs(diffY) < minSwipeDistance) return; // Слишком короткий
+        if (diffY > 0) {
+            // Свайп вниз
+            makeMove('down');
+        } else {
+            // Свайп вверх
+            makeMove('up');
+        }
+    }
+}, { passive: false });
+
+// Функция для обработки хода (объединяет логику клавиш и свайпов)
+function makeMove(direction) {
+    const moved = moveTiles(direction);
+    if (moved) {
+        addRandomTile();
+        updateBoardView();
+        updateScore();
+        checkGameStatus();
+    }
+}
     // Обработчик кнопки рестарта
     restartBtn.addEventListener('click', initGame);
 }
