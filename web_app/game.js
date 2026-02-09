@@ -75,7 +75,7 @@ async function loadUserProgress() {
     
     try {
         // Отправляем запрос вашему боту на Railway
-        const response = await fetch('https://ВАШ-ПРОЕКТ.railway.app/api/get-progress', {
+        const response = await fetch('https://akmaev19-creator.github.io/2048bot2048/web_app/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: tgUser.id })
@@ -120,7 +120,7 @@ async function saveUserProgress() {
     
     try {
         // Отправляем данные вашему боту на Railway
-        const response = await fetch('https://ВАШ-ПРОЕКТ.railway.app/api/save-progress', {
+        const response = await fetch('https://akmaev19-creator.github.io/2048bot2048/web_app/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(progressData)
@@ -140,7 +140,7 @@ async function saveUserProgress() {
 // Загружает топ рекордов
 async function loadTopRecords() {
     try {
-        const response = await fetch('https://ВАШ-ПРОЕКТ.railway.app/api/top-records');
+        const response = await fetch('https://akmaev19-creator.github.io/2048bot2048/web_app/');
         if (response.ok) {
             const records = await response.json();
             updateRecordsList(records);
