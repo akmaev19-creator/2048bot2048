@@ -1,1 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 в Telegram</title>
+    <!-- Подключаем наш стиль -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Официальная библиотека Telegram (ОБЯЗАТЕЛЬНО) -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 2048</h1>
+            <div class="score-container">
+                <div class="score-title">СЧЕТ</div>
+                <div id="score" class="score">0</div>
+            </div>
+        </header>
 
+        <!-- Кнопки выбора темы (пока скрыты, подключим позже) -->
+        <div class="theme-selector" id="themeSelector" style="display:none;">
+            <button class="theme-btn" data-theme="light">🌞 Светлая</button>
+            <button class="theme-btn" data-theme="dark">🌚 Темная</button>
+            <button class="theme-btn" data-theme="yellow">💛 Желтая</button>
+        </div>
+
+        <!-- Игровое поле 4x4. JS заполнит его плитками -->
+        <div id="game-board" class="game-board"></div>
+
+        <!-- Кнопки управления и информации -->
+        <div class="controls">
+            <button id="restart-btn" class="btn">🔄 Новая игра</button>
+            <button id="save-btn" class="btn" style="display:none;">💾 Сохранить рекорд</button>
+            <div class="hint">Используй стрелки на клавиатуре или свайпы на телефоне</div>
+        </div>
+
+        <!-- Блок для сообщений (победа/проигрыш) -->
+        <div id="message" class="message"></div>
+    </div>
+
+    <!-- Подключаем нашу игровую логику -->
+    <script src="game.js"></script>
+</body>
+</html>
