@@ -1,3 +1,213 @@
+// ========== ИНТЕГРАЦИЯ С TELEGRAM WEB APP ==========
+
+// Основной объект Telegram Web App
+let tg = null;
+let tgUser = null;
+let isTgInitialized = false;
+
+// Функция инициализации Telegram
+function initTelegram() {
+    if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+        tg = window.Telegram.WebApp;
+        
+        // Развернуть на весь экран и показать интерфейс
+        tg.expand();
+        tg.ready();
+        
+        // Получаем данные пользователя
+        tgUser = tg.initDataUnsafe?.user;
+        
+        if (tgUser) {
+            // Заполняем информацию в интерфейсе
+            document.getElementById('userName').textContent = tgUser.first_name || 'Игрок';
+            document.getElementById('displayName').textContent = tgUser.first_name || 'Игрок';
+            document.getElementById('userId').textContent = tgUser.id;
+            
+            // Устанавливаем аватар
+            const avatarEl = document.getElementById('userAvatar');
+            if (tgUser.first_name) {
+                avatarEl.textContent = tgUser.first_name.charAt(0).toUpperCase();
+            }
+            
+            // Загружаем сохраненный прогресс пользователя
+            loadUserProgress();
+            
+            // Загружаем таблицу рекордов
+            loadTopRecords();
+            
+            // Скрываем кнопку "Начать игру" (в Telegram игра запускается сразу)
+            document.getElementById('boardOverlay').style.display = 'none';
+        }
+        
+        // Настраиваем цветовую схему Telegram
+        applyTelegramTheme();
+        isTgInitialized = true;
+        
+        console.log('✅ Telegram Web App инициализирован');
+    } else {
+        console.log('ℹ️ Запущено вне Telegram, используем локальный режим');
+        // Заглушка для локального тестирования
+        document.getElementById('userName').textContent = 'Локальный режим';
+        document.getElementById('displayName').textContent = 'Локальный игрок';
+    }
+}
+
+// Применяем тему Telegram (светлая/темная)
+function applyTelegramTheme() {
+    if (!tg) return;
+    
+    const theme = tg.colorScheme; // 'light' или 'dark'
+    const themeMap = {
+        'light': 'light',
+        'dark': 'dark'
+    };
+    
+    if (themeMap[theme]) {
+        setGameTheme(themeMap[theme]);
+        document.getElementById('themeIndicator').innerHTML = 
+            `<i class="fas fa-circle"></i> ${theme === 'light' ? 'Светлая' : 'Темная'}`;
+    }
+}
+
+// Загружает сохраненный прогресс пользователя с сервера (бота)
+async function loadUserProgress() {
+    if (!tgUser) return;
+    
+    try {
+        // Отправляем запрос вашему боту на Railway
+        const response = await fetch('https://ВАШ-ПРОЕКТ.railway.app/api/get-progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: tgUser.id })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // data должна содержать: bestScore, gamesPlayed, currentBoard, currentScore
+            if (data.bestScore) {
+                document.getElementById('bestScore').textContent = data.bestScore;
+                document.getElementById('sessionBest').textContent = data.bestScore;
+            }
+            if (data.gamesPlayed) {
+                document.getElementById('gamesPlayed').textContent = data.gamesPlayed;
+            }
+            if (data.currentBoard) {
+                // Восстанавливаем сохраненную игру
+                board = data.currentBoard;
+                score = data.currentScore || 0;
+                updateBoardView();
+                updateScore();
+            }
+            console.log('✅ Прогресс загружен');
+        }
+    } catch (error) {
+        console.log('⚠️ Не удалось загрузить прогресс:', error);
+    }
+}
+
+// Сохраняет текущий прогресс на сервер (боту)
+async function saveUserProgress() {
+    if (!tgUser) return;
+    
+    const progressData = {
+        userId: tgUser.id,
+        username: tgUser.username || tgUser.first_name,
+        bestScore: Math.max(parseInt(document.getElementById('bestScore').textContent), score),
+        currentScore: score,
+        currentBoard: board,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        // Отправляем данные вашему боту на Railway
+        const response = await fetch('https://ВАШ-ПРОЕКТ.railway.app/api/save-progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(progressData)
+        });
+        
+        if (response.ok) {
+            console.log('✅ Прогресс сохранен');
+            // Показываем уведомление
+            showGameMessage('Прогресс сохранен в облаке!', 'success');
+        }
+    } catch (error) {
+        console.log('⚠️ Ошибка сохранения:', error);
+        showGameMessage('Ошибка сохранения', 'error');
+    }
+}
+
+// Загружает топ рекордов
+async function loadTopRecords() {
+    try {
+        const response = await fetch('https://ВАШ-ПРОЕКТ.railway.app/api/top-records');
+        if (response.ok) {
+            const records = await response.json();
+            updateRecordsList(records);
+        }
+    } catch (error) {
+        console.log('⚠️ Не удалось загрузить рекорды');
+    }
+}
+
+// Обновляет список рекордов в интерфейсе
+function updateRecordsList(records) {
+    const recordsList = document.getElementById('recordsList');
+    recordsList.innerHTML = '';
+    
+    records.slice(0, 5).forEach((record, index) => {
+        const recordEl = document.createElement('div');
+        recordEl.className = 'record-item';
+        recordEl.innerHTML = `
+            <div class="record-rank">${index + 1}</div>
+            <div class="record-user">${record.username}</div>
+            <div class="record-score">${record.score}</div>
+        `;
+        recordsList.appendChild(recordEl);
+    });
+}
+
+// Отправляет финальный результат при завершении игры
+async function sendFinalScore(finalScore) {
+    if (!tgUser) return;
+    
+    const gameResult = {
+        userId: tgUser.id,
+        username: tgUser.username || tgUser.first_name,
+        score: finalScore,
+        board: board,
+        date: new Date().toISOString()
+    };
+    
+    // Отправляем данные через Telegram Web App (бот получит как web_app_data)
+    if (tg && tg.sendData) {
+        tg.sendData(JSON.stringify(gameResult));
+        console.log('✅ Результат отправлен боту');
+    }
+    
+    // Дублируем сохранение прогресса
+    await saveUserProgress();
+}
+
+// Инициализируем Telegram при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация Telegram Web App
+    initTelegram();
+    
+    // Инициализация игры (ваш существующий код)
+    initGame();
+    
+    // Добавляем обработчики новых кнопок
+    document.getElementById('saveProgressBtn').addEventListener('click', saveUserProgress);
+    document.getElementById('backToBotBtn').addEventListener('click', function() {
+        if (tg && tg.close) {
+            tg.close();
+        }
+    });
+    
+    // Инициализация выбора темы
+    initThemeSelector();
+});
 // ========== МИНИМАЛЬНАЯ ИГРОВАЯ ЛОГИКА 2048 ==========
 
 let board = []; // Игровое поле 4x4
