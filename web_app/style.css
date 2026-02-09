@@ -1,1 +1,142 @@
+/* Основные стили */
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
+body {
+    background: #faf8ef;
+    color: #776e65;
+    margin: 0;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Шапка с заголовком и счетом */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin: 0;
+    color: #776e65;
+}
+
+.score-container {
+    background: #bbada0;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-align: center;
+    min-width: 100px;
+}
+
+.score-title {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+#score {
+    font-size: 1.8em;
+    font-weight: bold;
+}
+
+/* Игровое поле */
+.game-board {
+    background: #bbada0;
+    border-radius: 6px;
+    padding: 10px;
+    position: relative;
+    /* Создаем сетку 4x4 */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 10px;
+    aspect-ratio: 1 / 1; /* Делаем поле квадратным */
+}
+
+/* Ячейка поля (плитка) */
+.cell {
+    background: rgba(238, 228, 218, 0.35);
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    font-weight: bold;
+    aspect-ratio: 1 / 1; /* Делаем ячейки квадратными */
+    transition: all 0.15s ease-in-out;
+}
+
+/* Классы для плиток с числами (цвета как в оригинальной 2048) */
+.tile-2 { background: #eee4da; color: #776e65; }
+.tile-4 { background: #ede0c8; color: #776e65; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 1.8em; }
+.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 1.8em; }
+.tile-512 { background: #edc850; color: #f9f6f2; font-size: 1.8em; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 1.5em; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 1.5em; }
+
+/* Кнопки */
+.controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn {
+    background: #8f7a66;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 5px;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: #7c6b5a;
+}
+
+.theme-btn {
+    background: #bbada0;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 8px 15px;
+    margin: 3px;
+    cursor: pointer;
+}
+
+.hint {
+    margin-top: 15px;
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+/* Сообщения */
+.message {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 20px;
+    min-height: 2em;
+}
