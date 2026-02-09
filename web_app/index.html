@@ -3,44 +3,498 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048 в Telegram</title>
-    <!-- Подключаем наш стиль -->
+    <title>✨ 2048 — Telegram</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Официальная библиотека Telegram (ОБЯЗАТЕЛЬНО) -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎮 2048</h1>
-            <div class="score-container">
-                <div class="score-title">СЧЕТ</div>
-                <div id="score" class="score">0</div>
+    <div class="app-container" id="appContainer">
+        <!-- Шапка с Telegram-инфо -->
+        <div class="tg-header" id="tgHeader">
+            <i class="fab fa-telegram"></i>
+            <span id="userName">Загрузка...</span>
+            <div class="tg-theme-indicator" id="themeIndicator"><i class="fas fa-circle"></i> Тема</div>
+        </div>
+
+        <div class="game-wrapper">
+            <!-- Левая панель: Статистика и меню -->
+            <div class="side-panel">
+                <div class="user-card">
+                    <div class="avatar" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <h3 id="displayName">Игрок</h3>
+                        <p class="user-id">ID: <span id="userId">---</span></p>
+                    </div>
+                </div>
+
+                <div class="stats-box">
+                    <h4><i class="fas fa-chart-line"></i> Моя статистика</h4>
+                    <div class="stat">
+                        <span>Лучший счет</span>
+                        <strong id="bestScore">0</strong>
+                    </div>
+                    <div class="stat">
+                        <span>Сыграно игр</span>
+                        <strong id="gamesPlayed">0</strong>
+                    </div>
+                    <div class="stat">
+                        <span>Ранг</span>
+                        <strong id="userRank">-#</strong>
+                    </div>
+                </div>
+
+                <div class="menu-box">
+                    <h4><i class="fas fa-cog"></i> Меню</h4>
+                    <button class="menu-btn" id="themeBtn"><i class="fas fa-palette"></i> Сменить тему</button>
+                    <button class="menu-btn" id="soundBtn"><i class="fas fa-volume-up"></i> Звук: Вкл</button>
+                    <button class="menu-btn" id="helpBtn"><i class="fas fa-question-circle"></i> Правила</button>
+                    <button class="menu-btn" id="backToBotBtn"><i class="fas fa-robot"></i> В бота</button>
+                </div>
             </div>
-        </header>
 
-        <!-- Кнопки выбора темы (пока скрыты, подключим позже) -->
-        <div class="theme-selector" id="themeSelector" style="display:none;">
-            <button class="theme-btn" data-theme="light">🌞 Светлая</button>
-            <button class="theme-btn" data-theme="dark">🌚 Темная</button>
-            <button class="theme-btn" data-theme="yellow">💛 Желтая</button>
+            <!-- Основной игровой блок -->
+            <div class="main-game-area">
+                <header class="game-header">
+                    <div class="title-block">
+                        <h1><i class="fas fa-gamepad"></i> 2048</h1>
+                        <p class="subtitle">Объединяй плитки, чтобы получить <strong>2048!</strong></p>
+                    </div>
+                    <div class="score-time-block">
+                        <div class="score-card current">
+                            <div class="score-label">ТЕКУЩИЙ СЧЕТ</div>
+                            <div class="score-value" id="currentScore">0</div>
+                        </div>
+                        <div class="score-card best">
+                            <div class="score-label">РЕКОРД СЕССИИ</div>
+                            <div class="score-value" id="sessionBest">0</div>
+                        </div>
+                        <div class="timer-card">
+                            <div class="score-label"><i class="far fa-clock"></i> ВРЕМЯ</div>
+                            <div class="score-value" id="gameTimer">00:00</div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Контейнер темы -->
+                <div class="theme-selector-container" id="themeSelectorContainer">
+                    <h4><i class="fas fa-fill-drip"></i> Выберите стиль:</h4>
+                    <div class="theme-options">
+                        <div class="theme-option active" data-theme="light">
+                            <div class="theme-preview light-preview"></div>
+                            <span>Светлая</span>
+                        </div>
+                        <div class="theme-option" data-theme="dark">
+                            <div class="theme-preview dark-preview"></div>
+                            <span>Темная</span>
+                        </div>
+                        <div class="theme-option" data-theme="yellow">
+                            <div class="theme-preview yellow-preview"></div>
+                            <span>Золотая</span>
+                        </div>
+                        <div class="theme-option" data-theme="neon">
+                            <div class="theme-preview neon-preview"></div>
+                            <span>Неон</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Игровое поле -->
+                <div class="game-board-container">
+                    <div id="gameBoard" class="game-board"></div>
+                    <div class="board-overlay" id="boardOverlay">
+                        <div class="overlay-content">
+                            <h2 id="overlayTitle">Готовы играть?</h2>
+                            <p id="overlayText">Используйте стрелки или свайпы</p>
+                            <button class="btn-primary" id="startGameBtn"><i class="fas fa-play"></i> НАЧАТЬ ИГРУ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Панель управления -->
+                <div class="controls-panel">
+                    <button class="control-btn" id="restartBtn"><i class="fas fa-redo"></i> Заново</button>
+                    <button class="control-btn" id="undoBtn"><i class="fas fa-undo"></i> Отменить</button>
+                    <button class="control-btn" id="hintBtn"><i class="fas fa-lightbulb"></i> Подсказка</button>
+                    <button class="control-btn" id="saveProgressBtn"><i class="fas fa-cloud-upload-alt"></i> Сохранить</button>
+                </div>
+
+                <!-- Сообщения игры -->
+                <div id="gameMessage" class="game-message"></div>
+
+                <!-- Секция рекордов -->
+                <div class="records-section">
+                    <h3><i class="fas fa-trophy"></i> Топ-5 рекордов</h3>
+                    <div class="records-list" id="recordsList">
+                        <!-- Сюда вставится список рекордов из Telegram -->
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Игровое поле 4x4. JS заполнит его плитками -->
-        <div id="game-board" class="game-board"></div>
-
-        <!-- Кнопки управления и информации -->
-        <div class="controls">
-            <button id="restart-btn" class="btn">🔄 Новая игра</button>
-            <button id="save-btn" class="btn" style="display:none;">💾 Сохранить рекорд</button>
-            <div class="hint">Используй стрелки на клавиатуре или свайпы на телефоне</div>
+        <!-- Нижний статус-бар -->
+        <div class="status-bar">
+            <div class="status-item"><i class="fas fa-mobile-alt"></i> Свайпы работают!</div>
+            <div class="status-item"><i class="fas fa-sync-alt"></i> Автосохранение: <span id="autoSaveStatus">Вкл</span></div>
+            <div class="status-item" id="connectionStatus"><i class="fas fa-wifi"></i> Telegram: Подключено</div>
         </div>
-
-        <!-- Блок для сообщений (победа/проигрыш) -->
-        <div id="message" class="message"></div>
     </div>
 
-    <!-- Подключаем нашу игровую логику -->
+    <!-- Модальное окно для правил -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <h2><i class="fas fa-book"></i> Правила игры 2048</h2>
+            <ul>
+                <li>Используйте <strong>стрелки</strong> или <strong>свайпы</strong> для перемещения плиток.</li>
+                <li>При столкновении двух одинаковых плиток они <strong>объединяются</strong> в одну с суммой значений.</li>
+                <li>После каждого хода в случайной пустой клетке появляется новая плитка (2 или 4).</li>
+                <li>Ваша цель — создать плитку <strong>2048</strong>!</li>
+                <li>Игра заканчивается, когда нет возможности сделать ход.</li>
+            </ul>
+            <button class="btn-secondary" id="closeHelpBtn">Понятно!</button>
+        </div>
+    </div>
+
     <script src="game.js"></script>
 </body>
 </html>
+2. Обновленный style.css (скопируйте и замените полностью):
+
+css
+:root {
+    /* Светлая тема (по умолчанию) */
+    --tg-bg: #f0f2f5;
+    --tg-container: #ffffff;
+    --tg-text: #1a1a1a;
+    --tg-secondary: #6b7885;
+    --tg-accent: #0088cc;
+    --tg-border: #e1e3e6;
+    --tg-card: #f9f9f9;
+    --tg-hover: #f0f0f0;
+}
+
+/* Темная тема */
+[data-theme="dark"] {
+    --tg-bg: #0e1621;
+    --tg-container: #17212b;
+    --tg-text: #e1e3e6;
+    --tg-secondary: #6b7885;
+    --tg-accent: #2b5278;
+    --tg-border: #2c3a4a;
+    --tg-card: #232e3c;
+    --tg-hover: #2c3a4a;
+}
+
+/* Желтая/золотая тема */
+[data-theme="yellow"] {
+    --tg-bg: #fff9e6;
+    --tg-container: #fff3cc;
+    --tg-text: #5c4a00;
+    --tg-secondary: #a68b00;
+    --tg-accent: #ffcc00;
+    --tg-border: #ffdb4d;
+    --tg-card: #ffe680;
+    --tg-hover: #ffed99;
+}
+
+/* Неоновая тема */
+[data-theme="neon"] {
+    --tg-bg: #0a0a14;
+    --tg-container: #151522;
+    --tg-text: #00ff9d;
+    --tg-secondary: #7b68ee;
+    --tg-accent: #ff00ff;
+    --tg-border: #7b68ee;
+    --tg-card: #1e1e2e;
+    --tg-hover: #2a2a3e;
+}
+
+/* Базовые стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background-color: var(--tg-bg);
+    color: var(--tg-text);
+    line-height: 1.6;
+    padding: 10px;
+    min-height: 100vh;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--tg-container);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    border: 1px solid var(--tg-border);
+}
+
+/* Шапка Telegram */
+.tg-header {
+    background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+}
+
+.tg-header i { font-size: 1.2rem; }
+.tg-theme-indicator {
+    margin-left: auto;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+/* Основной макет */
+.game-wrapper {
+    display: flex;
+    min-height: 85vh;
+}
+
+/* Левая панель */
+.side-panel {
+    width: 280px;
+    background: var(--tg-card);
+    border-right: 1px solid var(--tg-border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--tg-border);
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0088cc, #00cc88);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.user-info h3 { margin-bottom: 5px; font-size: 1.2rem; }
+.user-id { font-size: 0.85rem; color: var(--tg-secondary); }
+
+.stats-box, .menu-box {
+    background: var(--tg-container);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--tg-border);
+}
+
+.stats-box h4, .menu-box h4 {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--tg-accent);
+    font-size: 1rem;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--tg-border);
+}
+
+.menu-btn {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    text-align: left;
+    background: var(--tg-card);
+    border: 1px solid var(--tg-border);
+    border-radius: 8px;
+    color: var(--tg-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.menu-btn:hover {
+    background: var(--tg-hover);
+    transform: translateX(5px);
+}
+
+/* Основная игровая область */
+.main-game-area {
+    flex: 1;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.title-block h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(90deg, var(--tg-accent), #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 5px;
+}
+
+.subtitle { color: var(--tg-secondary); font-size: 0.95rem; }
+
+.score-time-block {
+    display: flex;
+    gap: 15px;
+}
+
+.score-card, .timer-card {
+    background: var(--tg-card);
+    border-radius: 12px;
+    padding: 15px 20px;
+    min-width: 120px;
+    border: 2px solid var(--tg-border);
+    text-align: center;
+}
+
+.score-card.best { border-color: #ffcc00; }
+.score-label { font-size: 0.75rem; color: var(--tg-secondary); margin-bottom: 8px; }
+.score-value { font-size: 2rem; font-weight: bold; }
+
+/* Игровое поле */
+.game-board-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 12px;
+    background: var(--tg-card);
+    border-radius: 12px;
+    padding: 12px;
+    aspect-ratio: 1/1;
+    border: 2px solid var(--tg-border);
+}
+
+.cell {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.8rem;
+    aspect-ratio: 1/1;
+    transition: transform 0.15s, background 0.3s;
+}
+
+.board-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.overlay-content {
+    text-align: center;
+    color: white;
+    padding: 30px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0088cc, #00cc88);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-primary:hover { transform: scale(1.05); }
+
+/* Панель управления */
+.controls-panel {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.control-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--tg-card);
+    color: var(--tg-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    border: 1px solid var(--tg-border);
+    transition: all 0.2s;
+}
+
+.control-btn:hover {
+    background: var(--tg-hover);
+    transform: translateY(-3px);
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+    .game-wrapper { flex-direction: column; }
+    .side-panel {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 15px;
+    }
+    .user-card, .stats-box, .menu-box {
+        min-width: 250px;
+        flex-shrink: 0;
+    }
+    .game-header { flex-direction: column; }
+    .score-time-block { width: 100%; justify-content: center; }
+}
