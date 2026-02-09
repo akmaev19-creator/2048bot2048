@@ -36,7 +36,7 @@ function initGame() {
     
     // Добавляем обработчик клавиш (стрелки)
     document.addEventListener('keydown', handleKeyPress);
-    // ========== ДОБАВЛЯЕМ УПРАВЛЕНИЕ СВАЙПАМИ ==========
+  // ========== ДОБАВЛЯЕМ УПРАВЛЕНИЕ СВАЙПАМИ ==========
 
 let touchStartX = 0;
 let touchStartY = 0;
@@ -144,21 +144,16 @@ function updateScore() {
 
 // Обработка нажатия клавиш (движение)
 function handleKeyPress(event) {
-    let moved = false;
+    let direction;
     switch(event.key) {
-        case 'ArrowUp': moved = moveTiles('up'); break;
-        case 'ArrowDown': moved = moveTiles('down'); break;
-        case 'ArrowLeft': moved = moveTiles('left'); break;
-        case 'ArrowRight': moved = moveTiles('right'); break;
-        default: return; // Не стрелка — игнорируем
+        case 'ArrowUp': direction = 'up'; break;
+        case 'ArrowDown': direction = 'down'; break;
+        case 'ArrowLeft': direction = 'left'; break;
+        case 'ArrowRight': direction = 'right'; break;
+        default: return; // Игнорируем другие клавиши
     }
-    
-    if (moved) {
-        addRandomTile();
-        updateBoardView();
-        updateScore();
-        checkGameStatus();
-    }
+    // Используем новую универсальную функцию makeMove
+    makeMove(direction);
 }
 
 // Логика движения плиток (упрощенная реализация)
